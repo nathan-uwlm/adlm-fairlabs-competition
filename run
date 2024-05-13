@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 cd /root/
-R -e "library(rmarkdown); options(knitr.duplicate.label = 'allow'); render('dashboard.rmd', output_file='result.html')"
+R -e "library(rmarkdown); options(knitr.duplicate.label = 'allow'); render('dashboard.rmd', output_file='/output/result.html')"

@@ -1,9 +1,17 @@
-`r tab_metric`
-==========================
-
 Row
 -----------------------------------------------------------------------
 
-#### Metric Description
+### Group Difference P-values from 2-Way ANOVA
 
-...
+```{r}
+intervention_date <- '2028-03-01'
+anova_results_post <- aov(y ~ race_group + age_group, data=tab_data %>% filter(delivery_date >= intervention_date))
+anova_results_pre <- aov(y ~ race_group + age_group, data=tab_data %>% filter(delivery_date < intervention_date))
+anova_results_post <- summary(anova_results_post)[[1]] %>% select(`Pr(>F)`) %>%
+  rownames_to_column() %>% rename(`Post-Intervention P-Value` = `Pr(>F)`)
+anova_results_pre <- summary(anova_results_pre)[[1]] %>% select(`Pr(>F)`) %>%
+  rownames_to_column() %>% rename(`Pre-Intervention P-Value` = `Pr(>F)`)
+anova_results_pre %>%
+  inner_join(anova_results_post, by='rowname') %>%
+  datatable()
+```

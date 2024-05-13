@@ -11,6 +11,7 @@ output:
     source_code: embed
 ---
 ```{r, include=FALSE}
+library(DT)
 library(flexdashboard)
 library(DBI)
 library(tidyverse)
@@ -18,17 +19,51 @@ library(lubridate)
 library(plotly)
 library(knitr)
 library(janitor)
-library(DT)
 library(reshape2)
 require(scales)
+library(dplyr)
 library(glue)
+library(broom)
 ```
 
 ```{r}
-tab_metric <- 'Metric Name Here'
-tab_data <- NULL
 data <- read.csv("/input.csv")
-print(data)
+```
+```{r}
+data <- data %>% mutate(
+  positive_non_marijuana=case_when(`detected_6.acetylmorphine` > 0 ~ TRUE, `detected_7.aminoclonazepam` > 0 ~ TRUE, `detected_alprazolam` > 0 ~ TRUE, `detected_amobarbital` > 0 ~ TRUE, `detected_amphetamine` > 0 ~ TRUE, `detected_benzoylecgonine` > 0 ~ TRUE, `detected_buprenorphine` > 0 ~ TRUE, `detected_buprenorphine.glucuronide` > 0 ~ TRUE, `detected_bupropion` > 0 ~ TRUE, `detected_clonidine` > 0 ~ TRUE, `detected_cocaine` > 0 ~ TRUE, `detected_codeine` > 0 ~ TRUE, `detected_eddp` > 0 ~ TRUE, `detected_fentanyl` > 0 ~ TRUE, `detected_gabapentin` > 0 ~ TRUE, `detected_hydrocodone` > 0 ~ TRUE, `detected_hydromorphone` > 0 ~ TRUE, `detected_hydroxybupropion` > 0 ~ TRUE, `detected_ketamine` > 0 ~ TRUE, `detected_lsd` > 0 ~ TRUE, `detected_lorazepam` > 0 ~ TRUE, `detected_lorazepam.glucuronide` > 0 ~ TRUE, `detected_methadone` > 0 ~ TRUE, `detected_methamphetamine` > 0 ~ TRUE, `detected_methylbenzodioxolylbutanamine` > 0 ~ TRUE, `detected_methylenedioxyamphetamine` > 0 ~ TRUE, `detected_methylenedioxymethylamphetamine` > 0 ~ TRUE, `detected_methylphenidate` > 0 ~ TRUE, `detected_morphine` > 0 ~ TRUE, `detected_morphine.3.glucuronide` > 0 ~ TRUE, `detected_naloxone` > 0 ~ TRUE, `detected_norbuprenorphine` > 0 ~ TRUE, `detected_nordiazepam` > 0 ~ TRUE, `detected_o.desmethyl.tramadol` > 0 ~ TRUE, `detected_oxazepam` > 0 ~ TRUE, `detected_oxycodone` > 0 ~ TRUE, `detected_oxymorphone` > 0 ~ TRUE, `detected_pentobarbital` > 0 ~ TRUE, `detected_phencyclidine` > 0 ~ TRUE, `detected_phenobarbital` > 0 ~ TRUE, `detected_quetiapine` > 0 ~ TRUE, `detected_rohypnol` > 0 ~ TRUE, `detected_tramadol` > 0 ~ TRUE, `detected_venlafaxine` > 0 ~ TRUE, `detected_xylazine` > 0 ~ TRUE, TRUE ~ FALSE),
+  # The age ranges where arbitrarily chosen which the goal of being approximately equal in size
+  age_group=case_when(maternal_age < 25 ~ 'Under 25', maternal_age < 30 ~ '25 - 30', maternal_age < 34 ~ '30 - 34', TRUE ~ 'Over 34'),
+  # The dataset is 90% black or white, so all other values, including unspecified and multiracial values are combined into Other.
+  race_group=case_when(maternal_race == 'Black or African American' ~ maternal_race, maternal_race == 'White' ~ maternal_race, TRUE ~ 'Other'),
+  has_order=uds_order_id != '') %>% mutate(
+    positive_marijuana=case_when(`detected_tetrahydrocannabinol` > 0 ~ TRUE, TRUE ~ FALSE))
+#data %>% group_by(age_group) %>% summarize(n=n())
+#data %>% group_by(race_group) %>% summarize(n=n())
+```
+
+Demographic Parity
+==================
+
+### Metric Description
+
+We measure demographic parity using the portion of each demographic's subpopulation that was given drug testing.
+
+```{r}
+tab_data <- data %>% mutate(y=has_order)
+```
+```{r, child = 'section.rmd'}
+```
+
+Predictive Parity
+=================
+
+### Metric Description
+
+We measure predictive parity using the portion of the population that received testing that tested positive for a drug other than other than marijuana. We measure this using a separate population for each demographic group, and define predictive parity to be the goal of equality between the measure for each group.
+
+```{r}
+tab_data <- data %>% filter(has_order) %>% mutate(y=positive_non_marijuana)
 ```
 ```{r, child = 'section.rmd'}
 ```
