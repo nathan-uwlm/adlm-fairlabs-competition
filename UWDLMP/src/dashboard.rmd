@@ -31,16 +31,17 @@ data <- read.csv("/input.csv")
 ```
 ```{r}
 drup_col <- colnames((data))
-non_thc_col <- drup_col[grepl('detected_', data_col) & !grepl('tetrahydrocannabinol', data_col)]
+non_thc_col <- drup_col[grepl('detected_', drup_col) & !grepl('tetrahydrocannabinol', drup_col)]
+intervention_date <- as.Date('2028-03-01')
 data <- data %>% mutate(
   delivery_date = as.Date(delivery_date),
   cps_reporting_date = as.Date(cps_reporting_date),
   uds_collection_date = as.Date(uds_collection_date),
-  non_thc_detect = if_else(rowSums(data_o[non_thc_col])>0, TRUE, FALSE),
-  thc_detect = if_else(detected_tetrahydrocannabinol==1, TRUE, FALSE),
-  uds_test = if_else(is.na(uds_collection_date), FALSE, TRUE),
-  pre_post_QI = if_else(delivery_date >= qi_date, 'Post', 'Pre'),
-  delivery_month = as.Date(format.Date(delivery_date, '%Y-%m-01'),
+  non_thc_detect = if_else(rowSums(data_o[non_thc_col]) > 0, TRUE, FALSE),
+  thc_detect = if_else(detected_tetrahydrocannabinol == 1, TRUE, FALSE),
+  # uds_test = if_else(is.na(uds_collection_date), FALSE, TRUE),
+  pre_post_QI = if_else(delivery_date >= intervention_date, 'Post', 'Pre'),
+  delivery_month = as.Date(format.Date(delivery_date, '%Y-%m-01')),
   # positive_non_marijuana=case_when(`detected_6.acetylmorphine` > 0 ~ TRUE, `detected_7.aminoclonazepam` > 0 ~ TRUE, `detected_alprazolam` > 0 ~ TRUE, `detected_amobarbital` > 0 ~ TRUE, `detected_amphetamine` > 0 ~ TRUE, `detected_benzoylecgonine` > 0 ~ TRUE, `detected_buprenorphine` > 0 ~ TRUE, `detected_buprenorphine.glucuronide` > 0 ~ TRUE, `detected_bupropion` > 0 ~ TRUE, `detected_clonidine` > 0 ~ TRUE, `detected_cocaine` > 0 ~ TRUE, `detected_codeine` > 0 ~ TRUE, `detected_eddp` > 0 ~ TRUE, `detected_fentanyl` > 0 ~ TRUE, `detected_gabapentin` > 0 ~ TRUE, `detected_hydrocodone` > 0 ~ TRUE, `detected_hydromorphone` > 0 ~ TRUE, `detected_hydroxybupropion` > 0 ~ TRUE, `detected_ketamine` > 0 ~ TRUE, `detected_lsd` > 0 ~ TRUE, `detected_lorazepam` > 0 ~ TRUE, `detected_lorazepam.glucuronide` > 0 ~ TRUE, `detected_methadone` > 0 ~ TRUE, `detected_methamphetamine` > 0 ~ TRUE, `detected_methylbenzodioxolylbutanamine` > 0 ~ TRUE, `detected_methylenedioxyamphetamine` > 0 ~ TRUE, `detected_methylenedioxymethylamphetamine` > 0 ~ TRUE, `detected_methylphenidate` > 0 ~ TRUE, `detected_morphine` > 0 ~ TRUE, `detected_morphine.3.glucuronide` > 0 ~ TRUE, `detected_naloxone` > 0 ~ TRUE, `detected_norbuprenorphine` > 0 ~ TRUE, `detected_nordiazepam` > 0 ~ TRUE, `detected_o.desmethyl.tramadol` > 0 ~ TRUE, `detected_oxazepam` > 0 ~ TRUE, `detected_oxycodone` > 0 ~ TRUE, `detected_oxymorphone` > 0 ~ TRUE, `detected_pentobarbital` > 0 ~ TRUE, `detected_phencyclidine` > 0 ~ TRUE, `detected_phenobarbital` > 0 ~ TRUE, `detected_quetiapine` > 0 ~ TRUE, `detected_rohypnol` > 0 ~ TRUE, `detected_tramadol` > 0 ~ TRUE, `detected_venlafaxine` > 0 ~ TRUE, `detected_xylazine` > 0 ~ TRUE, TRUE ~ FALSE),
   # The age ranges where arbitrarily chosen which the goal of being approximately equal in size
   age_group=case_when(maternal_age < 25 ~ 'Under 25', maternal_age < 30 ~ '25 - 30', maternal_age < 34 ~ '30 - 34', TRUE ~ 'Over 34'),
@@ -51,6 +52,84 @@ data <- data %>% mutate(
     # positive_marijuana=case_when(`detected_tetrahydrocannabinol` > 0 ~ TRUE, TRUE ~ FALSE))
 #data %>% group_by(age_group) %>% summarize(n=n())
 #data %>% group_by(race_group) %>% summarize(n=n())
+```
+
+```{r}
+# data summary 
+
+## demographic parity
+demo_sum <- data %>%
+  group_by(race_group,age_group,pre_post_QI,delivery_month,has_order) %>%
+  count() %>%
+  ungroup() %>%
+  group_by(race_group,age_group,pre_post_QI,delivery_month) %>%
+  mutate(total = sum(n),
+         perc_total = round(n/total, digits = 2)) %>%
+  ungroup() 
+
+## predictive parity
+pred_non_thc_sum <- data %>%
+  filter(has_order) %>%
+  group_by(race_group,pre_post_QI,delivery_month,non_thc_detect) %>%
+  count() %>%
+  ungroup() %>%
+  group_by(race_group,pre_post_QI,delivery_month) %>%
+  mutate(total = sum(n),
+         perc_total = round(n/total, digits = 2)) %>%
+  ungroup() 
+
+pred_thc_sum <- data %>%
+  filter(has_order) %>%
+  group_by(race_group,pre_post_QI,delivery_month,thc_detect) %>%
+  count() %>%
+  ungroup() %>%
+  group_by(race_group,pre_post_QI,delivery_month) %>%
+  mutate(total = sum(n),
+         perc_total = round(n/total, digits = 2)) %>%
+  ungroup() 
+
+## equalized odds
+equal_odds <- data %>%
+  filter(has_order) %>%
+  group_by(race_group,age_group,pre_post_QI,ord_indict_non_thc,non_thc_detect) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(ord_ind_detect = factor(case_when(ord_indict_non_thc & non_thc_detect ~ 'TP',
+                                    ord_indict_non_thc & !non_thc_detect ~ 'FP',
+                                    !ord_indict_non_thc & !non_thc_detect ~ 'TN',
+                                    !ord_indict_non_thc & non_thc_detect ~ 'FN')))
+
+equal_odds_wide <- pivot_wider(equal_odds%>%
+  select(c("race_group","age_group","pre_post_QI",'ord_ind_detect', 'n')), names_from = ord_ind_detect, values_from = n) %>%
+  mutate(FPR = (FP/(FP+TN)), 
+         TPR = (TP/(TP+FN)), 
+         ratio = FPR/TPR)
+
+## equal outcomes
+equal_out <- data %>%
+  # filter(!is.na(cps_reporting_date)) %>%
+  group_by(has_order, race_group, age_group, non_thc_detect,cps_report, pre_post_QI,delivery_month) %>%
+  count() %>%
+  ungroup() %>%
+  group_by(has_order, race_group, age_group,pre_post_QI,delivery_month) %>%
+  mutate(total = sum(n),
+         perc_total = round(n/total, digits = 2)) %>%
+  ungroup() 
+
+## group benefit equality
+group_benefit <- data %>%
+  filter(uds_test) %>%
+  group_by(race_group,age_group,pre_post_QI,cps_report,non_thc_detect) %>%
+  count() %>%
+  ungroup() %>%
+  mutate(cps_detect = factor(case_when(cps_report & non_thc_detect ~ 'TP',
+                                          !cps_report & non_thc_detect ~ 'FP',
+                                          !cps_report & !non_thc_detect ~ 'TN',
+                                          cps_report & !non_thc_detect ~ 'FN')))
+
+group_benefit_wide <- pivot_wider(group_benefit %>%
+  select(c("race_group","age_group","pre_post_QI",'cps_detect', 'n')), names_from = cps_detect, values_from = n) %>%
+  mutate(ratio = ((TP+FP)/(TP+FN)))
 ```
 
 Demographic Parity
