@@ -24,6 +24,7 @@ require(scales)
 library(dplyr)
 library(glue)
 library(broom)
+library(gtsummary)
 ```
 
 ```{r}
@@ -130,6 +131,9 @@ group_benefit <- data %>%
 group_benefit_wide <- pivot_wider(group_benefit %>%
   select(c("race_group","age_group","pre_post_QI",'cps_detect', 'n')), names_from = cps_detect, values_from = n) %>%
   mutate(ratio = ((TP+FP)/(TP+FN)))
+```
+
+```{r, child = 'visuals.rmd'}
 ```
 
 Demographic Parity
