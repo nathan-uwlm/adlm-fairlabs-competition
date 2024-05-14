@@ -38,7 +38,7 @@ data <- data %>% mutate(
   delivery_date = as.Date(delivery_date),
   cps_reporting_date = as.Date(cps_reporting_date),
   uds_collection_date = as.Date(uds_collection_date),
-  non_thc_detect = if_else(rowSums(data_o[non_thc_col]) > 0, TRUE, FALSE),
+  non_thc_detect = if_else(rowSums(data[non_thc_col]) > 0, TRUE, FALSE),
   thc_detect = if_else(detected_tetrahydrocannabinol == 1, TRUE, FALSE),
   # uds_test = if_else(is.na(uds_collection_date), FALSE, TRUE),
   pre_post_QI = if_else(delivery_date >= intervention_date, 'Post', 'Pre'),
