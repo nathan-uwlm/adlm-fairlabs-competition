@@ -1,17 +1,19 @@
 Summary
 ==========================
 
-Row
------------------------------------------------------------------------
-### Metric guide? Summary?
-
-Filler text for now
+**The dashed green line marks the date of QI intervention.**
 
 Row
 -----------------------------------------------------------------------
 
 ### Demographic Parity
 
+We measure demographic parity using the proportion of each demographic and age subpopulation that was given drug testing.
+<br/>**Goal**: Achieve parity in all race and age groups
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
 ```{r}
 # data visuals
 
@@ -22,29 +24,42 @@ graph <- demo_sum %>%
 
 g <- ggplot(graph, aes(x=delivery_month, y=perc_total, color=race_group)) +
   geom_line() +
-  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) + 
-  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of monthers tested:', label_percent()(perc_total),
+  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) +
+  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of mothers tested:', label_percent()(perc_total),
                  '<br>Total number of births:', total)), show.legend = FALSE) + 
   # annotate("text", x = qi_date-months(1), y = 0.5, label = '2028-03-01\nQI Intervention', size = 3, angle = 90) +
-  guides(color=guide_legend(title="Race")) +
-  facet_grid(.~age_group)
+  scale_color_manual(values = race_pal) +
+  guides(color=guide_legend(title="Race Group")) +
+  scale_y_continuous(labels = label_percent()) +
+  facet_grid(.~age_group) +
+  ylab('Percent of mothers tested') +
+  xlab('Delivery Month')
 
 ggplotly(g, tooltip = c('text')) 
 ```
 
-### Predictive Parity
+Row
+-----------------------------------------------------------------------
 
-```{r}
+### Predictive Parity
+We measure predictive parity as the proportion of each demographic's subpopulation that tested positive for THC or Non-THC drugs.
+<br/>**Goal**: Achieve parity in all race groups and drug detection types
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
+
+```{r fig.height=5}
 ## predictive parity
 graph_non_thc <- pred_non_thc_sum %>%
   filter(non_thc_detect) %>%
-  mutate(drug_cat = 'Non-THC') %>%
+  mutate(drug_cat = 'Non-THC drugs detected') %>%
   select(-c(non_thc_detect)) %>%
   arrange(race_group, delivery_month)
 
 graph_thc <- pred_thc_sum %>%
   filter(thc_detect) %>%
-  mutate(drug_cat = 'THC') %>%
+  mutate(drug_cat = 'THC detected') %>%
   select(-c(thc_detect)) %>%
   arrange(race_group, delivery_month)
 
@@ -53,12 +68,16 @@ graph <- rbind(graph_non_thc, graph_thc) %>%
 
 g <- ggplot(graph, aes(x=delivery_month, y=perc_total, color=race_group)) +
   geom_line() +
-  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) + 
-  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of monthers tested:', label_percent()(perc_total),
+  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) +
+  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of mothers tested:', label_percent()(perc_total),
                  '<br>Total number of births:', total)), show.legend = FALSE) + 
   facet_wrap(.~drug_cat, nrow = 2) + 
+  scale_color_manual(values = race_pal) +
   # annotate("text", x = qi_date-months(1), y = 0.9, label = '2028-03-01\nQI Intervention', size = 3, angle = 90) +
-  guides(color=guide_legend(title="Race")) 
+  guides(color=guide_legend(title="Race")) +
+  scale_y_continuous(labels = label_percent()) +
+  ylab('Percent of mothers tested') +
+  xlab('Delivery Month')
 
 ggplotly(g, tooltip = c('text')) 
 ```
@@ -68,29 +87,74 @@ Row
 
 ### Equalized Odds
 
+We measure equalized odds using the proportion of each demographic and age subpopulation that was given drug testing with a relevant order indication such as "Substance use during pregnancy, excluding marijuana" and "History of opioids prescribed during pregnancy".
+<br/>**Goal**: Achieve parity in all race and age groups
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
 ```{r}
 ## equalized odds
-graph <- pivot_longer(equal_odds_wide%>%
-  select(c("race_group","age_group","pre_post_QI",'FPR','TPR')),cols = c(,'FPR','TPR'), names_to = "type", values_to = "value")
+graph <- pivot_longer(
+  data = equal_odds_wide%>%
+    select(c("race_group","age_group","pre_post_QI",'FPR','TPR')), cols = c('FPR','TPR'), names_to = "type", values_to = "value") %>%
+         filter(pre_post_QI =='Post') %>%
+  merge(equal_odds %>%
+  group_by(race_group,pre_post_QI,age_group) %>%
+  summarize(total=sum(n)), by = c("race_group","pre_post_QI","age_group")) %>%
+  mutate(type = if_else(type=="FPR", 'Percent of negative results with revelant order indication', 'Percent of positive results with revelant order indication'))
 
-g <- ggplot(graph %>%
-         filter(pre_post_QI =='Post'), aes(x=race_group, y=value, fill=age_group)) +
+g <- ggplot(graph, aes(x=race_group, y=value, fill=age_group, text= paste('Total number of monthers tested:', total,
+                                                                          '<br>Percent of total:', label_percent()(value)))) +
   geom_col(position='dodge')+
-  facet_grid(.~type)
+  facet_grid(.~type, labeller = label_wrap_gen(width = 40)) +
+  scale_y_continuous(labels = label_percent()) +
+  scale_fill_manual(values = age_pal) +
+  guides(fill=guide_legend(title="Age Group")) +
+  ylab('Percent') +
+  xlab('Race Group')
 
-ggplotly(g, tooltip = 'value') 
+ggplotly(g, tooltip = 'text')
 ```
+
+Row
+-----------------------------------------------------------------------
 
 ### General Group Equity
 
+We measure general group equity using the proportion of each demographic and age subpopulation that received intervention for the correct event.<br/>
+Equation: (TP+FP)/(TP+FN)<br/>
+Definition:<br/>
+- True positive is # of patients tested **positive** for non THC substance and **was reported** to CPS<br/>
+- False positive is # of patients tested **negative** for non THC substance and **was reported** to CPS<br/>
+- True negative is # of patients tested **negative** for non THC substance and **wasn’t reported** to CPS<br/>
+- False negative is # of patients tested **positive** for non THC substance and **was reported** to CPS<br/>
+**Goal**: Achieve as close to a ratio of 1 as possible so that a group is not under-served (ratio < 1) or over-served (ratio > 1)
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
 ```{r}
 ## group benefit equality 
-g<-ggplot(group_benefit_wide%>%filter(race_group!='Other'), aes(x=race_group, y=ratio, fill=age_group)) +
+graph <- group_benefit_wide %>%
+  filter(race_group!='Other') %>%
+  merge(group_benefit %>%
+  group_by(race_group, age_group, pre_post_QI) %>%
+  summarize(total=sum(n)) %>%
+    ungroup(), by = c("race_group", "age_group", "pre_post_QI")) %>%
+   mutate(pre_post_QI = factor(if_else(pre_post_QI=='Pre', 'Pre QI Intervention', 'Post QI Intervention'), levels=c('Pre QI Intervention', 'Post QI Intervention')))
+
+g<-ggplot(graph, aes(x=race_group, y=ratio, fill=age_group, text=paste('General Group Equity Ratio:', ratio,
+                                                                        '<br>Total number of mothers:', total))) +
   geom_col(position='dodge')+
   geom_hline(yintercept = 1) +
-  facet_grid(.~pre_post_QI)
+  scale_fill_manual(values = age_pal) +
+  facet_grid(.~pre_post_QI) +
+  guides(fill=guide_legend(title="Age Group")) +
+  ylab('General Group Equity Ratio') +
+  xlab('Race Group')
 
-ggplotly(g, tooltip = 'ratio') 
+ggplotly(g, tooltip = 'text')
 ```
 
 Row
@@ -98,32 +162,59 @@ Row
 
 ### Equal Outcomes for non tested mothers
 
+We measure equal outcomes for non tested mothers using the proportion of each demographic subpopulation that were reported to CPS **without** an UDS indicating non-THC drug use. There may be other evidence not available in this dataset that would be relevant to such a report, so this visual serves to illustrate the relationship between non-testing and CPS report only.
+<br/>**Goal**: Achieve parity in all race groups
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
 ```{r}
 ## equal outcomes for non tested mothers
-g<-ggplot(equal_out %>% filter(cps_report & !has_order), aes(x=delivery_month, y=perc_total, color=race_group)) +
-  geom_line()+
-  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) + 
-  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of monthers reported to CPS:', label_percent()(perc_total),
-                 '<br>Total number of births:', total)), show.legend = FALSE) + 
-  facet_grid(age_group~.)+ 
-  guides(color=guide_legend(title="Race"))
+graph <- equal_out %>% filter(cps_report & !uds_test)
 
-ggplotly(g, tooltip = 'text') 
+g<-ggplot(graph, aes(x=delivery_month, y=perc_total, color=race_group)) +
+  geom_line()+
+  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) +
+  scale_color_manual(values = race_pal) +
+  geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of monthers reported to CPS:', label_percent()(perc_total),
+                 '<br>Total number of births:', total)), show.legend = FALSE) +
+  # facet_grid(age_group~.)+
+  guides(color=guide_legend(title="Race"))+
+  scale_y_continuous(labels = label_percent()) +
+  ylab('Percent of monthers reported to CPS') +
+  xlab('Delivery Month')
+
+ggplotly(g, tooltip = 'text')
 ```
+
+Row
+-----------------------------------------------------------------------
 
 ### Equal Outcomes for tested mothers
+
+We measure equal outcomes for non tested mothers using the proportion of each demographic subpopulation that were reported to CPS **with** an UDS indicating non-THC drug use. There may be other evidence not available in this dataset that would be relevant to such a report, so this visual serves to illustrate the relationship between testing and CPS report only.
+<br/>**Goal**: Achieve parity in all race groups
+
+Row 
+-----------------------------------------------------------------------
+### Visual {.no-title}
 ```{r}
 ## equal outcomes for tested mothers
-g<-ggplot(equal_out %>% filter(cps_report & has_order), aes(x=delivery_month, y=perc_total, color=race_group)) +
+graph <- equal_out %>%
+  filter(cps_report & uds_test) %>%
+  mutate(non_thc_detect = if_else(non_thc_detect, 'Non-THC drugs detected', 'No Non-THC drugs detected'))
+
+g<-ggplot(graph, aes(x=delivery_month, y=perc_total, color=race_group)) +
   geom_line()+
-  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) + 
+  geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(qi_date)) +
   geom_point(aes(size = total, alpha = 0.5, text=paste('Percent of monthers reported to CPS:', label_percent()(perc_total),
-                 '<br>Total number of births:', total)), show.legend = FALSE) + 
-  facet_grid(age_group~non_thc_detect)+ 
-  guides(color=guide_legend(title="Race"))
+                 '<br>Total number of births:', total)), show.legend = FALSE) +
+  facet_grid(.~non_thc_detect)+
+  scale_color_manual(values = race_pal) +
+  guides(color=guide_legend(title="Race")) +
+  scale_y_continuous(labels = label_percent()) +
+  ylab('Percent of monthers reported to CPS') +
+  xlab('Delivery Month')
 
-ggplotly(g, tooltip = 'text') 
+ggplotly(g, tooltip = 'text')
 ```
-
-
-
