@@ -1,0 +1,15 @@
+column_out	column_in
+delivery_date	birth_date
+maternal_birth_date 
+cps_reporting_date	
+uds_collection_date	
+non_thc_detect	non_thc_detect
+thc_detect	thc_detect
+uds_test	uds_test
+maternal_age	maternal_age
+maternal_race	race
+order_indication	
+ord_indict_non_thc	
+intervention_date	
+non_thc_cols	
+thc_col	
