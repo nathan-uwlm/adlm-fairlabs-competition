@@ -18,9 +18,7 @@ library(knitr)
 library(janitor)
 library(reshape2)
 require(scales)
-library(dplyr)
 library(glue)
-library(broom)
 library(gtsummary)
 library(htmltools)
 ```
@@ -29,9 +27,9 @@ library(htmltools)
 # cleans raw data based on user defined input columns
 
 clean_data <- function(df, input){
-  
+
   # Pull user defined columns
-  
+
   # dates
   delivery_date_in <- input[input$column_out=='delivery_date','column_in']
   cps_reporting_date_in <- input[input$column_out=='cps_reporting_date','column_in']
@@ -40,93 +38,83 @@ clean_data <- function(df, input){
   maternal_birth_date_in <- input[input$column_out=='maternal_birth_date','column_in']
   # static QI intervention date from dictionary 
   intervention_date_in <- as.Date(input[input$column_out=='intervention_date','column_in'])
-  
+
   # filled if non-THC and THC are stored as individual drug columns
   non_thc_col <- strsplit(input[input$column_out=='non_thc_cols','column_in'], split ='\\\\t')[[1]]
   thc_col_in <- input[input$column_out=='thc_col','column_in']
   # filled if non-THC and THC are stored as true/false 
   non_thc_detect_in <- input[input$column_out=='non_thc_detect','column_in']
   thc_detect_in <- input[input$column_out=='thc_detect','column_in']
-  
+
   maternal_age_in <- input[input$column_out=='maternal_age','column_in']
   maternal_race_in <- input[input$column_out=='maternal_race','column_in']
 
   order_indication_in <- input[input$column_out=='order_indication','column_in']
   # Used to determine which order indication is for non-THC drug use
   ord_indict_non_thc_in <- strsplit(input[input$column_out=='ord_indict_non_thc','column_in'], split ='\\\\t')[[1]]
-  
+
   # Checks if each column exist, and format for summary and visual uses
-  if(delivery_date_in == ""){
+  if (delivery_date_in == "") {
     df$delivery_date <- NA
     df$delivery_month <- NA
-  }
-  else {
+  } else {
     df$delivery_date <- as.Date(df[[delivery_date_in]])
     df$delivery_month <- as.Date(format.Date(df$delivery_date, '%Y-%m-01'))
-  } 
-  
-  if(cps_reporting_date_in==""){
+  }
+
+  if (cps_reporting_date_in == "") {
     df$cps_reporting_date <- NA
     df$cps_report <- NA
-  }
-  else {
+  } else {
     df$cps_reporting_date <- as.Date(df[[cps_reporting_date_in]])
     df$cps_report <- if_else(is.na(df$cps_reporting_date), FALSE, TRUE)
-  } 
-  
-  if(is.na(intervention_date_in)){
-    df$pre_post_QI <- NA
   }
-  else {
+
+  if (is.na(intervention_date_in)) {
+    df$pre_post_QI <- NA
+  } else {
     df <- df %>%
       mutate(pre_post_QI = factor(if_else(delivery_date >= intervention_date_in, 'Post', 'Pre'), 
                                   levels = c('Pre', 'Post')))
-  } 
-  
-  if((uds_collection_date_in=="" & uds_test_in!="")){
+  }
+
+  if ((uds_collection_date_in == "" & uds_test_in != "")) {
     df$uds_collection_date <- NA
     df$uds_test <- df[[uds_test_in]]
-  }
-  else if (uds_collection_date_in!="") {
+  } else if (uds_collection_date_in != "") {
     df$uds_collection_date <- as.Date(df[[uds_collection_date_in]])
     df$uds_test <- if_else(is.na(df$uds_collection_date), FALSE, TRUE)
-  } 
-  else {
+  } else {
     df$uds_collection_date <- NA
     df$uds_test <- NA
-  }  
-  
-  if(thc_detect_in!="" & thc_col_in==""){
-    df$thc_detect <- df[[thc_detect_in]]
   }
-  else if (thc_col_in!="") {
+
+  if (thc_detect_in != "" & thc_col_in == "") {
+    df$thc_detect <- df[[thc_detect_in]]
+  } else if (thc_col_in != "") {
     df$detected_tetrahydrocannabinol <- df[[thc_col_in]]
     df$thc_detect <- if_else(df$detected_tetrahydrocannabinol==1, TRUE, FALSE)
-  } 
-  else {
+  } else {
     df$thc_detect <- NA
-  }  
-  
-  if (non_thc_detect_in != "" & is_empty(non_thc_col)){
-    df$non_thc_detect <- df[[non_thc_detect_in]]
   }
-  else if (!is_empty(non_thc_col)) {
+
+  if (non_thc_detect_in != "" & is_empty(non_thc_col)) {
+    df$non_thc_detect <- df[[non_thc_detect_in]]
+  } else if (!is_empty(non_thc_col)) {
     df <- df %>%
       mutate(non_thc_detect = if_else(rowSums(df[non_thc_col]) > 0, TRUE, FALSE))
-  } 
-  else {
+  } else {
     df$non_thc_detect <- NA
-  } 
-  
-  if (maternal_age_in != ""){
+  }
+
+  if (maternal_age_in != "") {
     df$maternal_age <- df[[maternal_age_in]]
     df <- df %>%
       mutate(age_group = factor(case_when(maternal_age < 25 ~ 'Under 25', 
                                 maternal_age < 30 ~ '25 - 30', 
                                 maternal_age < 34 ~ '30 - 34', 
                                 TRUE ~ 'Over 34'), levels=c('Under 25','25 - 30','30 - 34','Over 34')))
-  }
-  else if (maternal_birth_date_in!= "") {
+  } else if (maternal_birth_date_in != "") {
     df$maternal_birth_date = as.Date(df[[maternal_birth_date_in]])
     df$maternal_age <- floor(as.numeric(difftime(delivery_date, maternal_birth_date, units = 'days'))/365.25)
     df <- df %>%
@@ -134,32 +122,29 @@ clean_data <- function(df, input){
                               maternal_age < 30 ~ '25 - 30', 
                               maternal_age < 34 ~ '30 - 34', 
                               TRUE ~ 'Over 34'), levels=c('Under 25','25 - 30','30 - 34','Over 34')))
-  } 
-  else {
+  } else {
     df$maternal_age <- NA
     df$age_group <- NA
-  } 
-  
-  if (maternal_race_in != ""){
+  }
+
+  if (maternal_race_in != "") {
     df$maternal_race <- df[[maternal_race_in]]
     df <- df %>%
       mutate(race_group = case_when(maternal_race == 'Black or African American' ~ maternal_race, 
                                    maternal_race == 'White' ~ maternal_race, 
                                    TRUE ~ 'Other'))
-  }
-  else {
+  } else {
     df$maternal_race <- NA
     df$race_group <- NA
   }
-  
-  if(order_indication_in==""){
+
+  if (order_indication_in == "") {
     df$ord_indict_non_thc <- NA
-  }
-  else {
+  } else {
     df$order_indication <- df[[order_indication_in]]
     df$ord_indict_non_thc <- if_else(df$order_indication %in% ord_indict_non_thc_in, TRUE, FALSE)
-  } 
-  
+  }
+
   df
 }
 
@@ -178,7 +163,7 @@ data <- clean_data(data, input)
 
 
 ```{r}
-# data summary 
+# data summary
 
 ## demographic parity
 demo_sum <- data %>%
@@ -188,7 +173,7 @@ demo_sum <- data %>%
   group_by(race_group,age_group,pre_post_QI,delivery_month) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
-  ungroup() 
+  ungroup()
 
 ## predictive parity
 pred_non_thc_sum <- data %>%
@@ -199,7 +184,7 @@ pred_non_thc_sum <- data %>%
   group_by(race_group,pre_post_QI,delivery_month) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
-  ungroup() 
+  ungroup()
 
 pred_thc_sum <- data %>%
   filter(uds_test) %>%
@@ -209,11 +194,12 @@ pred_thc_sum <- data %>%
   group_by(race_group,pre_post_QI,delivery_month) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
-  ungroup() 
+  ungroup()
 
 ## equalized odds depends on order indication data
-if (sum(is.na(data$ord_indict_non_thc))==nrow(data)) {
+if (sum(is.na(data$ord_indict_non_thc)) == nrow(data)) {
   equal_odds_wide <- NA
+  # if no data available, display error message
   error_ord <- "The data set is missing order indication data. The dashboard cannot create this visual or table."
 } else {
   error_ord <- NA
@@ -227,7 +213,7 @@ if (sum(is.na(data$ord_indict_non_thc))==nrow(data)) {
                                       ord_indict_non_thc & !non_thc_detect ~ 'FP',
                                       !ord_indict_non_thc & !non_thc_detect ~ 'TN',
                                       !ord_indict_non_thc & non_thc_detect ~ 'FN')))
-  
+
   equal_odds_wide <- pivot_wider(equal_odds%>%
     select(c("race_group","age_group","pre_post_QI",'ord_ind_detect', 'n')), names_from = ord_ind_detect, values_from = n) %>%
     mutate(FPR = (FP/(FP+TN)), 
@@ -235,10 +221,11 @@ if (sum(is.na(data$ord_indict_non_thc))==nrow(data)) {
            ratio = FPR/TPR)
 }
 
-## equal outcome and group benefit depends on cps report data 
-if (sum(is.na(data$cps_report))==nrow(data)) {
+## equal outcome and group benefit depends on cps report data
+if (sum(is.na(data$cps_report)) == nrow(data)) {
   equal_out <- NA
   group_benefit_wide <- NA
+  # if no data available, display error message
   error_cps <- "The data set is missing CPS report data. The dashboard cannot create this visual or table."
 } else {
   error_cps <- NA
@@ -251,7 +238,7 @@ if (sum(is.na(data$cps_report))==nrow(data)) {
     mutate(total = sum(n),
            perc_total = round(n/total, digits = 2)) %>%
     ungroup()
-  
+
   ## group benefit equality
   group_benefit <- data %>%
     filter(uds_test) %>%
@@ -262,7 +249,7 @@ if (sum(is.na(data$cps_report))==nrow(data)) {
                                          cps_report & !non_thc_detect ~ 'FP',
                                          !cps_report & !non_thc_detect ~ 'TN',
                                          !cps_report & non_thc_detect ~ 'FN')))
-  
+
   group_benefit_wide <- pivot_wider(group_benefit %>%
     select(c("race_group","age_group","pre_post_QI",'cps_detect', 'n')), names_from = cps_detect, values_from = n) %>%
     mutate(ratio = ((TP+FP)/(TP+FN)))
