@@ -32,10 +32,9 @@
     },
     "plotly": {
       "Package": "plotly",
-      "Version": "4.9.3",
+      "Version": "4.10.2",
       "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "f6b85d9e4ed88074ea0ede1aa74bb00e"
+      "Repository": "CRAN"
     },
     "tidyverse": {
       "Package": "tidyverse",
