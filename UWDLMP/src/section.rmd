@@ -14,13 +14,19 @@ Row
 
 ### Logistic regression model - Pre Intvervention
 ```{r}
-glm_pre <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_pre <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_pre
 ```
 
 ### Logistic regression model - Post Intvervention
 ```{r}
-glm_post <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_post <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_post
 ```
 
@@ -36,25 +42,37 @@ Row
 
 ### Non-THC Logistic regression model - Pre Intvervention
 ```{r}
-glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_pre
 ```
 
 ### Non-THC Logistic regression model - Post Intvervention
 ```{r}
-glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_post
 ```
 
 ### THC Logistic regression model - Pre Intvervention
 ```{r}
-glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_pre
 ```
 
 ### THC Logistic regression model - Post Intvervention
 ```{r}
-glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_post
 ```
 
@@ -71,24 +89,36 @@ Row
 
 ### Non tested mothers' Logistic regression model - Pre Intvervention
 ```{r}
-glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & !uds_test), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & !uds_test), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_pre
 ```
 
 ### Non tested mothers' Logistic regression model - Post Intvervention
 ```{r}
-glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & !uds_test), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & !uds_test), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_post
 ```
 
 ### Tested mothers' Logistic regression model - Pre Intvervention
 ```{r}
-glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & uds_test), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & uds_test), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_pre
 ```
 
 ### Tested mothers' Logistic regression model - Post Intvervention
 ```{r}
-glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & !uds_test), family = "binomial") %>% tbl_regression(add_estimate_to_reference_rows=TRUE)
+glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & !uds_test), family = "binomial") %>% 
+  tbl_regression(add_estimate_to_reference_rows=TRUE,
+                 label = list (age_group ~ "Age group",
+                              race_group ~ "Race group"))
 glm_post
 ```
