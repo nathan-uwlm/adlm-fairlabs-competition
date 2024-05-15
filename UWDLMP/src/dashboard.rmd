@@ -21,6 +21,7 @@ require(scales)
 library(glue)
 library(gtsummary)
 library(htmltools)
+library(lubridate)
 ```
 
 ```{r}
@@ -56,10 +57,10 @@ clean_data <- function(df, input){
   # Checks if each column exist, and format for summary and visual uses
   if (delivery_date_in == "") {
     df$delivery_date <- NA
-    df$delivery_month <- NA
+    df$delivery_qtr <- NA
   } else {
     df$delivery_date <- as.Date(df[[delivery_date_in]])
-    df$delivery_month <- as.Date(format.Date(df$delivery_date, '%Y-%m-01'))
+    df$delivery_qtr <- floor_date(as.Date(format.Date(df$delivery_date, '%Y-%m-01')), unit = "quarter")
   }
 
   if (cps_reporting_date_in == "") {
@@ -167,10 +168,10 @@ data <- clean_data(data, input)
 
 ## demographic parity
 demo_sum <- data %>%
-  group_by(race_group,age_group,pre_post_QI,delivery_month,uds_test) %>%
+  group_by(race_group,age_group,delivery_qtr,uds_test) %>%
   count() %>%
   ungroup() %>%
-  group_by(race_group,age_group,pre_post_QI,delivery_month) %>%
+  group_by(race_group,age_group,delivery_qtr) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
   ungroup()
@@ -178,20 +179,20 @@ demo_sum <- data %>%
 ## predictive parity
 pred_non_thc_sum <- data %>%
   filter(uds_test) %>%
-  group_by(race_group,pre_post_QI,delivery_month,non_thc_detect) %>%
+  group_by(race_group,delivery_qtr,non_thc_detect) %>%
   count() %>%
   ungroup() %>%
-  group_by(race_group,pre_post_QI,delivery_month) %>%
+  group_by(race_group,delivery_qtr) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
   ungroup()
 
 pred_thc_sum <- data %>%
   filter(uds_test) %>%
-  group_by(race_group,pre_post_QI,delivery_month,thc_detect) %>%
+  group_by(race_group,delivery_qtr,thc_detect) %>%
   count() %>%
   ungroup() %>%
-  group_by(race_group,pre_post_QI,delivery_month) %>%
+  group_by(race_group,delivery_qtr) %>%
   mutate(total = sum(n),
          perc_total = round(n/total, digits = 2)) %>%
   ungroup()
@@ -231,10 +232,10 @@ if (sum(is.na(data$cps_report)) == nrow(data)) {
   error_cps <- NA
   ## equal outcomes
   equal_out <- data %>%
-    group_by(uds_test, race_group, non_thc_detect,cps_report, pre_post_QI,delivery_month) %>%
+    group_by(uds_test, race_group, non_thc_detect,cps_report,delivery_qtr) %>%
     count() %>%
     ungroup() %>%
-    group_by(uds_test, race_group,pre_post_QI,delivery_month) %>%
+    group_by(uds_test, race_group,delivery_qtr) %>%
     mutate(total = sum(n),
            perc_total = round(n/total, digits = 2)) %>%
     ungroup()
@@ -251,7 +252,7 @@ if (sum(is.na(data$cps_report)) == nrow(data)) {
                                          !cps_report & non_thc_detect ~ 'FN')))
 
   group_benefit_wide <- pivot_wider(group_benefit %>%
-    select(c("race_group","age_group","pre_post_QI",'cps_detect', 'n')), names_from = cps_detect, values_from = n) %>%
+    select(c("race_group","age_group","pre_post_QI","cps_detect","n")), names_from = cps_detect, values_from = n) %>%
     mutate(ratio = ((TP+FP)/(TP+FN)))
 }
 ```
