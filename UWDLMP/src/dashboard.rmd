@@ -168,34 +168,22 @@ data <- clean_data(data, input)
 
 ## demographic parity
 demo_sum <- data %>%
-  group_by(race_group,age_group,delivery_qtr,uds_test) %>%
-  count() %>%
-  ungroup() %>%
   group_by(race_group,age_group,delivery_qtr) %>%
-  mutate(total = sum(n),
-         perc_total = round(n/total, digits = 2)) %>%
-  ungroup()
+  summarise(total = n(),
+         perc_total = round(sum(uds_test, na.rm = TRUE)/n(), digits = 2))
 
 ## predictive parity
 pred_non_thc_sum <- data %>%
   filter(uds_test) %>%
-  group_by(race_group,delivery_qtr,non_thc_detect) %>%
-  count() %>%
-  ungroup() %>%
   group_by(race_group,delivery_qtr) %>%
-  mutate(total = sum(n),
-         perc_total = round(n/total, digits = 2)) %>%
-  ungroup()
+  summarise(total = n(),
+         perc_total = round(sum(non_thc_detect, na.rm = TRUE)/n(), digits = 2))
 
 pred_thc_sum <- data %>%
   filter(uds_test) %>%
-  group_by(race_group,delivery_qtr,thc_detect) %>%
-  count() %>%
-  ungroup() %>%
   group_by(race_group,delivery_qtr) %>%
-  mutate(total = sum(n),
-         perc_total = round(n/total, digits = 2)) %>%
-  ungroup()
+  summarise(total = n(),
+         perc_total = round(sum(thc_detect, na.rm = TRUE)/n(), digits = 2))
 
 ## equalized odds depends on order indication data
 if (sum(is.na(data$ord_indict_non_thc)) == nrow(data)) {

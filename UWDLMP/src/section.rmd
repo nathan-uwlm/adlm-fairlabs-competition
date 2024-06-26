@@ -13,7 +13,7 @@ If no intervention date was given, then the same table will show for both pre an
 Row
 -----------------------------------------------------------------------
 
-### Logistic regression model - Pre Intvervention
+### Logistic regression model - Pre Intervention
 ```{r}
 # check if QI intervetion date is available
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
@@ -36,7 +36,9 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
-### Logistic regression model - Post Intvervention
+`r if(is.na(intervention_date)) {"\\begin{comment}"}`
+
+### Logistic regression model - Post Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(uds_test ~ race_group + age_group, data=data, family = "binomial") %>% 
@@ -57,6 +59,8 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
+`r if(is.na(intervention_date)) {"\\end{comment}"}`
+
 Row
 -----------------------------------------------------------------------
 
@@ -68,7 +72,7 @@ If no intervention date was given, then the same table will show for both pre an
 Row
 -----------------------------------------------------------------------
 
-### Non-THC Logistic regression model - Pre Intvervention
+### Non-THC Logistic regression model - Pre Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
@@ -89,7 +93,9 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
-### Non-THC Logistic regression model - Post Intvervention
+`r if(is.na(intervention_date)) {"\\begin{comment}"}`
+
+### Non-THC Logistic regression model - Post Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
@@ -110,7 +116,9 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
-### THC Logistic regression model - Pre Intvervention
+`r if(is.na(intervention_date)) {"\\end{comment}"}`
+
+### THC Logistic regression model - Pre Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_pre <- glm(thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
@@ -131,7 +139,9 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
-### THC Logistic regression model - Post Intvervention
+`r if(is.na(intervention_date)) {"\\begin{comment}"}`
+
+### THC Logistic regression model - Post Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
@@ -152,6 +162,8 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
+`r if(is.na(intervention_date)) {"\\end{comment}"}`
+
 Row
 -----------------------------------------------------------------------
 
@@ -164,7 +176,7 @@ If no intervention date was given, then the same table will show for both pre an
 Row
 -----------------------------------------------------------------------
 
-### Non tested mothers' Logistic regression model - Pre Intvervention
+### Non tested mothers' Logistic regression model - Pre Intervention
 ```{r}
 # check if CPS report data is available
 if(!is.na(error_cps)) {
@@ -190,7 +202,7 @@ if(!is.na(error_cps)) {
 }
 ```
 
-### Non tested mothers' Logistic regression model - Post Intvervention
+### Non tested mothers' Logistic regression model - Post Intervention
 ```{r}
 if(!is.na(error_cps)) {
   print(error_cps)
@@ -215,7 +227,7 @@ if(!is.na(error_cps)) {
 }
 ```
 
-### Tested mothers' Logistic regression model - Pre Intvervention
+### Tested mothers' Logistic regression model - Pre Intervention
 ```{r}
 if(!is.na(error_cps)) {
   print(error_cps)
@@ -240,7 +252,7 @@ if(!is.na(error_cps)) {
 }
 ```
 
-### Tested mothers' Logistic regression model - Post Intvervention
+### Tested mothers' Logistic regression model - Post Intervention
 ```{r}
 if(!is.na(error_cps)) {
   print(error_cps)
