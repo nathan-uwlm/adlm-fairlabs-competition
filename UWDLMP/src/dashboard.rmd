@@ -130,10 +130,18 @@ clean_data <- function(df, input){
 
   if (maternal_race_in != "") {
     df$maternal_race <- df[[maternal_race_in]]
+    race_above_thresh <- df %>%
+      group_by(maternal_race) %>% summarise(portion = n() / nrow(df)) %>%
+      filter(portion > 0.08)
+
     df <- df %>%
-      mutate(race_group = case_when(maternal_race == 'Black or African American' ~ maternal_race, 
-                                   maternal_race == 'White' ~ maternal_race, 
-                                   TRUE ~ 'Other'))
+      mutate(race_group = case_when(
+        maternal_race %in% race_above_thresh$maternal_race ~ maternal_race,
+        TRUE ~ 'Other'))
+    ref_group <- df %>% group_by(race_group) %>% summarise(total = n()) %>% filter(total == max(total))
+    df$race_group <- relevel(
+      factor(df$race_group),
+      ref=ref_group$race_group)
   } else {
     df$maternal_race <- NA
     df$race_group <- NA
@@ -155,8 +163,8 @@ clean_data <- function(df, input){
 data <- read.csv("/input.csv")
 input <- read.csv("/dict.txt", sep = '\t')
 
-race_pal <- setNames(object = c("#66c2a5","#fc8d62","#8da0cb"), nm = c('Black or African American', 'White', 'Other'))
-age_pal <- setNames(object = c("#f0f9e8","#bae4bc","#7bccc4", '#2b8cbe'), nm = c('Under 25', '25 - 30', '30 - 34', 'Over 34'))
+race_pal <- setNames(object = c("#e0aae8","#bae4bc","#7bccc4", '#2b8cbe'), nm = c('Black or African American', 'White', 'Other', 'Asian'))
+age_pal <- setNames(object = c("#e0aae8","#bae4bc","#7bccc4", '#2b8cbe'), nm = c('Under 25', '25 - 30', '30 - 34', 'Over 34'))
 intervention_date <- as.Date(input[input$column_out=='intervention_date','column_in'])
 
 data <- clean_data(data, input)
@@ -249,4 +257,7 @@ if (sum(is.na(data$cps_report)) == nrow(data)) {
 ```
 
 ```{r, child = 'section.rmd'}
+```
+
+```{r, child = 'demographics.rmd'}
 ```

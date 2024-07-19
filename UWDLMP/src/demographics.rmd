@@ -1,0 +1,77 @@
+Demographics
+==========================
+
+Row
+-----------------------------------------------------------------------
+
+### Demographics of All Mothers
+
+```{r}
+draw_pie_charts <- function(pie_data_r, pie_data_a){
+  fig <- plot_ly()
+  
+  pie_data_r <- pie_data_r[match(names(race_pal), pie_data_r$race_group),]
+  pie_data_a <- pie_data_a[match(names(age_pal), pie_data_a$age_group),]
+  
+  fig <- fig %>% add_pie(
+    data = pie_data_r, labels = ~ race_group,
+    values = ~ total,
+    text = pie_data_r$total,
+    textinfo = 'text',
+    domain = list(row = 0, column = 0),
+    title = "Race",
+    legendgroup = 'group1',
+    marker = list(colors = race_pal))
+  
+  fig <- fig %>% add_pie(
+    data = pie_data_a, labels = ~ age_group,
+    values = ~ total,
+    text = pie_data_a$total,
+    textinfo = 'text',
+    domain = list(row = 0, column = 1),
+    legendgroup = 'group2',
+    title = "Age",
+    marker = list(colors = race_pal))
+  
+  fig <- fig %>% layout(
+    grid=list(rows=1, columns=2),
+    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  
+  return(fig)
+}
+draw_pie_charts(
+  data %>% group_by(race_group) %>% summarise(total=n()),
+  data %>% group_by(age_group) %>% summarise(total=n())
+)
+```
+
+### Demographics of Tested Mothers
+
+```{r}
+draw_pie_charts(
+  data %>% filter(uds_test) %>% group_by(race_group) %>% summarise(total=n()),
+  data %>% filter(uds_test) %>% group_by(age_group) %>% summarise(total=n())
+)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Demographics of Mothers Positive for Drugs Excluding THC
+
+```{r}
+draw_pie_charts(
+  data %>% filter(uds_test & non_thc_detect) %>% group_by(race_group) %>% summarise(total=n()),
+  data %>% filter(uds_test & non_thc_detect) %>% group_by(age_group) %>% summarise(total=n())
+)
+```
+
+### Demographics of Mothers Positive for THC
+
+```{r}
+draw_pie_charts(
+  data %>% filter(uds_test & thc_detect) %>% group_by(race_group) %>% summarise(total=n()),
+  data %>% filter(uds_test & thc_detect) %>% group_by(age_group) %>% summarise(total=n())
+)
+```

@@ -13,7 +13,7 @@ If no intervention date was given, then the same table will show for both pre an
 Row
 -----------------------------------------------------------------------
 
-### Logistic regression model - Pre Intervention
+### Logistic regression model`r if_else(is.na(intervention_date), '', '- Pre Intervention')`
 ```{r}
 # check if QI intervetion date is available
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
@@ -72,10 +72,10 @@ If no intervention date was given, then the same table will show for both pre an
 Row
 -----------------------------------------------------------------------
 
-### Non-THC Logistic regression model - Pre Intervention
+### Non-THC Logistic regression model`r if_else(is.na(intervention_date), '', '- Pre Intervention')`
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-  glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
+  glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -83,7 +83,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 
   div(style='height:100%; overflow-y: scroll', glm_pre)
 } else {
-  glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
+  glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Pre"), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -98,7 +98,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ### Non-THC Logistic regression model - Post Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-  glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
+  glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -106,7 +106,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 
   div(style='height:100%; overflow-y: scroll', glm_post)
 } else {
-  glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
+  glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Post"), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -121,7 +121,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ### THC Logistic regression model - Pre Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-  glm_pre <- glm(thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
+  glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -129,7 +129,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   
   div(style='height:100%; overflow-y: scroll', glm_pre)
 } else {
-  glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
+  glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Pre"), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -144,7 +144,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ### THC Logistic regression model - Post Intervention
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-  glm_post <- glm(thc_detect ~ race_group + age_group, data=data, family = "binomial") %>% 
+  glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -152,7 +152,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   
   div(style='height:100%; overflow-y: scroll', glm_post)
 } else {
-  glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
+  glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Post"), family = "binomial") %>%
     tbl_regression(add_estimate_to_reference_rows=TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
@@ -183,7 +183,7 @@ if(!is.na(error_cps)) {
   print(error_cps)
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-    glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>% 
+    glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>%
       tbl_regression(add_estimate_to_reference_rows=TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
@@ -191,7 +191,7 @@ if(!is.na(error_cps)) {
     
     div(style='height:100%; overflow-y: scroll', glm_pre)
   } else {
-    glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & !uds_test), family = "binomial") %>% 
+    glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & !uds_test), family = "binomial") %>%
       tbl_regression(add_estimate_to_reference_rows=TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
@@ -208,7 +208,7 @@ if(!is.na(error_cps)) {
   print(error_cps)
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
-    glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>% 
+    glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>%
       tbl_regression(add_estimate_to_reference_rows=TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
