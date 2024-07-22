@@ -6,8 +6,7 @@ Row
 
 ### Demographic Parity
 
-We measure demographic parity using the proportion of each demographic and age subpopulation that was given drug testing.
-If no intervention date was given, then the same table will show for both pre and post intervention sections.
+We measure demographic parity using the proportion of each race and age group that was given drug testing.
 <br/>**Goal**: Achieve parity in all race and age groups
 
 Row
@@ -18,7 +17,7 @@ Row
 # check if QI intervetion date is available
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_pre <- glm(uds_test ~ race_group + age_group, data=data, family = "binomial") %>% 
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
     as_gt()
@@ -27,7 +26,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 } else {
   # if QI date not available
   glm_pre <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre"), family = "binomial") %>% 
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
     as_gt()
@@ -42,7 +41,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(uds_test ~ race_group + age_group, data=data, family = "binomial") %>% 
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE,  exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
       as_gt()
@@ -50,7 +49,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   div(style='height:100%; overflow-y: scroll', glm_post)
 } else {
   glm_post <- glm(uds_test ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post"), family = "binomial") %>% 
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
     as_gt()
@@ -65,8 +64,7 @@ Row
 -----------------------------------------------------------------------
 
 ### Predictive Parity
-We measure predictive parity as the proportion of each demographic's subpopulation that tested positive for THC or Non-THC drugs.
-If no intervention date was given, then the same table will show for both pre and post intervention sections.
+We measure predictive parity as the proportion of each demographic's tested subpopulation that tested positive for THC or Non-THC drugs.
 <br/>**Goal**: Achieve parity in all race groups and drug detection types
 
 Row
@@ -76,7 +74,7 @@ Row
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -84,7 +82,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   div(style='height:100%; overflow-y: scroll', glm_pre)
 } else {
   glm_pre <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Pre"), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -99,7 +97,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -107,7 +105,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   div(style='height:100%; overflow-y: scroll', glm_post)
 } else {
   glm_post <- glm(non_thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Post"), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -122,7 +120,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -130,7 +128,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   div(style='height:100%; overflow-y: scroll', glm_pre)
 } else {
   glm_pre <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Pre"), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -145,7 +143,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 ```{r}
 if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -153,7 +151,7 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
   div(style='height:100%; overflow-y: scroll', glm_post)
 } else {
   glm_post <- glm(thc_detect ~ race_group + age_group, data=data %>% filter(uds_test) %>% filter(pre_post_QI=="Post"), family = "binomial") %>%
-    tbl_regression(add_estimate_to_reference_rows=TRUE,
+    tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                    label = list(age_group ~ "Age group",
                                 race_group ~ "Race group")) %>%
   as_gt()
@@ -162,15 +160,12 @@ if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
 }
 ```
 
-`r if(is.na(intervention_date)) {"\\end{comment}"}`
-
 Row
 -----------------------------------------------------------------------
 
 ### Equal Outcomes for non tested mothers
 
-We measure equal outcomes for non tested mothers using the proportion of each demographic subpopulation that were reported to CPS **without** an UDS indicating non-THC drug use. There may be other evidence not available in this dataset that would be relevant to such a report, so this visual serves to illustrate the relationship between non-testing and CPS report only.
-If no intervention date was given, then the same table will show for both pre and post intervention sections.
+We measure equal outcomes for non tested mothers using the proportion of each demographic subpopulation that were reported to CPS **without** an UDS indicating non-THC drug use. There may be other evidence not available in this data set that would be relevant to such a report, so this visual serves to illustrate the relationship between non-testing and CPS reporting only.
 <br/>**Goal**: Achieve parity in all race groups
 
 Row
@@ -184,7 +179,7 @@ if(!is.na(error_cps)) {
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
     glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>%
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -192,7 +187,7 @@ if(!is.na(error_cps)) {
     div(style='height:100%; overflow-y: scroll', glm_pre)
   } else {
     glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & !uds_test), family = "binomial") %>%
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -209,7 +204,7 @@ if(!is.na(error_cps)) {
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
     glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(!uds_test), family = "binomial") %>%
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -217,7 +212,7 @@ if(!is.na(error_cps)) {
     div(style='height:100%; overflow-y: scroll', glm_post)
   } else {
     glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & !uds_test), family = "binomial") %>% 
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -234,7 +229,7 @@ if(!is.na(error_cps)) {
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
     glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>% 
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -242,7 +237,7 @@ if(!is.na(error_cps)) {
     div(style='height:100%; overflow-y: scroll', glm_pre)
   } else {
     glm_pre <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Pre" & uds_test), family = "binomial") %>% 
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -259,7 +254,7 @@ if(!is.na(error_cps)) {
 } else {
   if (sum(is.na(data$pre_post_QI)) == nrow(data)) {
     glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(uds_test), family = "binomial") %>% 
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -267,7 +262,7 @@ if(!is.na(error_cps)) {
     div(style='height:100%; overflow-y: scroll', glm_post)
   } else {
     glm_post <- glm(cps_report ~ race_group + age_group, data=data %>% filter(pre_post_QI=="Post" & uds_test), family = "binomial") %>% 
-      tbl_regression(add_estimate_to_reference_rows=TRUE,
+      tbl_regression(add_estimate_to_reference_rows=TRUE, exponentiate = TRUE,
                      label = list(age_group ~ "Age group",
                                   race_group ~ "Race group")) %>%
       as_gt()
@@ -276,3 +271,5 @@ if(!is.na(error_cps)) {
   }
 }
 ```
+
+`r if(is.na(intervention_date)) {"\\end{comment}"}`

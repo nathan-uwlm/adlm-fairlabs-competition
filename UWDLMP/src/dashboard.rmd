@@ -131,8 +131,8 @@ clean_data <- function(df, input){
   if (maternal_race_in != "") {
     df$maternal_race <- df[[maternal_race_in]]
     race_above_thresh <- df %>%
-      group_by(maternal_race) %>% summarise(portion = n() / nrow(df)) %>%
-      filter(portion > 0.08)
+      group_by(maternal_race) %>% summarise(total = n()) %>%
+      filter(total > 2000)
 
     df <- df %>%
       mutate(race_group = case_when(
