@@ -6,11 +6,22 @@ Row
 
 ### Methods
 
-We used three categories for the race field: Black or African American, White and Other. The Other category includes all other racial groups in the dataset, mothers with an unspecified race and those with multiple races. None of these categories were analyzed individually because the Other category only makes up 10% of the datapoints in total, so there would be insufficient data for a robust analysis.
- 
-We used four age categories: Under 25, 25 – 30, 30 – 34, and Over 34. The number of categories and precise ranges was somewhat arbitrary, but we adjusted the ranges to keep the number of individuals in each group similar in size.
+We used four age categories: Under 25, 25 – 30, 30 – 34, and Over 34. The number of categories and precise ranges was somewhat arbitrary, but we adjusted the ranges to keep the number of individuals in each group similar in size within the Fairlabs Washington University data set.
 
-We used R’s glm package to do multivariate logistic regression analyses with the age and race categories as independent variables. We repeated the analysis with a varying dependent variable and subpopulation for the metrics described below.
+The number of categories for the race field is reduced from the original data set
+by combining all categories with fewer than 2,000 patients into a single "Other" category.
+The threshold's purpose is to ensure there is enough data within each group for a robust
+analysis. Mothers with multiple races were also grouped into the Other category.
+
+We used R’s glm package to do multivariate logistic regression analyses with the age and race categories as independent variables. We repeated the analysis with a varying dependent variable and subpopulation for the metrics described below. We used the majority population as the reference group.
+
+For local activation, we queried mothers who received our standard urine drug
+screen or urine pain drug screen either ordered directly or as part of a panel.
+Only drugs in our urine pain drug screen were counted as positives.
+This set of drugs has some differences from those in the Fairlabs data set.
+We queried drug screens up to 6 months before the date of birth and up to 30 days
+after it. We only analyzed the one drug screen closest to the date of birth for each mother.
+
 
 Row
 -----------------------------------------------------------------------
@@ -19,9 +30,10 @@ Row
 
 We measure demographic parity using the proportion of each race and age group that was given drug testing.
 If the proportions are equal for all demographics, the conditions for demographic parity are met.
-If no intervention date was given, then the same table will show for both pre and post intervention sections.
 
+`r if(is.na(intervention_date)) {"\\begin{comment}"}`
 **The dashed green line marks the date of QI intervention.**
+`r if(is.na(intervention_date)) {"\\end{comment}"}`
 
 Row 
 -----------------------------------------------------------------------
@@ -31,7 +43,6 @@ Row
 
 ## demographic parity
 graph <- demo_sum %>%
-  filter(uds_test) %>%
   arrange(race_group,age_group, delivery_qtr)
 
 g <- ggplot(graph, aes(x=delivery_qtr, y=perc_total, color=race_group)) +
@@ -51,7 +62,7 @@ g <- ggplot(graph, aes(x=delivery_qtr, y=perc_total, color=race_group)) +
   ylab('Percent of mothers tested') +
   xlab('Delivery Quarter')
 
-ggplotly(g, tooltip = c('text')) %>%
+ggplotly(g + theme_bw(), tooltip = c('text')) %>%
   layout(legend = list(orientation = 'h'))
 ```
 
@@ -59,9 +70,9 @@ Row
 -----------------------------------------------------------------------
 
 ### Predictive Parity
-We measure predictive parity using the proportion of each demographic's subpopulation that tested positive out of the people tested.
-If the proportions are equal the conditions of predictive partity are met.
-We measure it separately for THC or Non-THC drugs.
+We measure predictive parity using the proportion of each demographic that tested positive out of the people tested within that demographic.
+If the proportions are equal the conditions of predictive parity are met.
+We measure it separately for THC and Non-THC drugs.
 
 Row 
 -----------------------------------------------------------------------
@@ -70,19 +81,15 @@ Row
 ```{r fig.height=5}
 ## predictive parity
 graph_non_thc <- pred_non_thc_sum %>%
-  filter(non_thc_detect) %>%
   mutate(drug_cat = 'Non-THC drugs detected') %>%
-  select(-c(non_thc_detect)) %>%
   arrange(race_group, delivery_qtr)
 
 graph_thc <- pred_thc_sum %>%
-  filter(thc_detect) %>%
   mutate(drug_cat = 'THC detected') %>%
-  select(-c(thc_detect)) %>%
   arrange(race_group, delivery_qtr)
 
 graph <- rbind(graph_non_thc, graph_thc) %>%
-  arrange(race_group, delivery_qtr)
+  arrange(drug_cat, race_group, delivery_qtr)
 
 g <- ggplot(graph, aes(x=delivery_qtr, y=perc_total, color=race_group)) +
   geom_line() +
@@ -90,19 +97,21 @@ g <- ggplot(graph, aes(x=delivery_qtr, y=perc_total, color=race_group)) +
   geom_point(aes(size = total,
                  alpha = 0.5,
                  text=paste('Delivery Quarter:', format(delivery_qtr, '%Y-%m'),
-                 '<br>Percent of mothers tested:', label_percent()(perc_total),
-                 '<br>Total number of births:', total)),
+                 '<br>Percent positive:', label_percent()(perc_total),
+                 '<br>Total mothers tested:', total)),
                  show.legend = FALSE) +
   facet_wrap(.~drug_cat, nrow = 2) +
   scale_color_manual(values = race_pal) +
   guides(color=guide_legend(title="Race")) +
   scale_y_continuous(labels = label_percent()) +
-  ylab('Percent of mothers tested') +
+  ylab('Positivity rate of mothers tested') +
   xlab('Delivery Quarter')
 
-ggplotly(g, tooltip = c('text')) %>%
+ggplotly(g + theme_bw(), tooltip = c('text')) %>%
   layout(legend = list(orientation = 'h'))
 ```
+
+`r if(is.na(intervention_date)) {"\\begin{comment}"}`
 
 Row
 -----------------------------------------------------------------------
@@ -145,7 +154,7 @@ if(!is.na(error_ord)) {
     ylab('Percent') +
     xlab('Race Group')
 
-  ggplotly(g, tooltip = 'text') %>%
+  ggplotly(g + theme_bw(), tooltip = 'text') %>%
     layout(legend = list(orientation = 'h'))
 }
 ```
@@ -195,7 +204,7 @@ if(!is.na(error_cps)) {
     ylab('General Group Equity Ratio') +
     xlab('Race Group')
 
-  ggplotly(g, tooltip = 'text') %>%
+  ggplotly(g + theme_bw(), tooltip = 'text') %>%
     layout(legend = list(orientation = 'h'))
 }
 ```
@@ -231,7 +240,7 @@ if(!is.na(error_cps)) {
     ylab('Percent of mothers reported to CPS') +
     xlab('Delivery Quarter')
   
-  ggplotly(g, tooltip = 'text') %>%
+  ggplotly(g + theme_bw(), tooltip = 'text') %>%
     layout(legend = list(orientation = 'h'))
 }
 ```
@@ -256,6 +265,7 @@ if(!is.na(error_cps)) {
     filter(cps_report & uds_test) %>%
     mutate(non_thc_detect = if_else(non_thc_detect, 'Non-THC drugs detected', 'No Non-THC drugs detected'))
   
+
   g<-ggplot(graph, aes(x=delivery_qtr, y=perc_total, color=race_group)) +
     geom_line()+
     geom_vline(linetype="dashed", color="darkgreen", xintercept = as.numeric(intervention_date)) +
@@ -271,7 +281,8 @@ if(!is.na(error_cps)) {
     ylab('Percent of mothers reported to CPS') +
     xlab('Delivery Quarter')
   
-  ggplotly(g, tooltip = 'text') %>%
+  ggplotly(g + theme_bw(), tooltip = 'text') %>%
     layout(legend = list(orientation = 'h'))
 }
 ```
+`r if(is.na(intervention_date)) {"\\end{comment}"}`
